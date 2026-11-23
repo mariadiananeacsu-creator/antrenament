@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Antrenamente</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f1115">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Antrenamente">
+<link rel="apple-touch-icon" href="icon-180.png">
+
+<style>
+:root{--bg:#0f1115;--card:#181b22;--line:#2a2f3a;--text:#e9ecf2;--muted:#8a93a6;--acc:#4ade80;--acc2:#22c55e;--warn:#f5b041;--field:#0d0f14}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px}
+header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg);border-bottom:1px solid var(--line)}
+header h1{margin:0;font-size:18px;flex:1}
+#status{font-size:12px;color:var(--acc)}
+main{max-width:720px;margin:0 auto;padding:12px 16px 80px}
+h2.sec{font-size:15px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:18px 0 8px}
+button,.btn{font:inherit;color:var(--text);background:#232834;border:1px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer}
+button:active{transform:scale(.98)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.day-card{display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.arrow{font-size:24px;color:var(--muted)}
+.muted{color:var(--muted);font-size:14px}
+.toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;margin:6px 0 4px}
+input[type=date]{font:inherit;color:var(--text);background:var(--field);border:1px solid var(--line);border-radius:10px;padding:7px 10px}
+details.card summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:8px}
+details.card summary::-webkit-details-marker{display:none}
+details.card summary b{font-size:16px}
+.count{font-size:13px;white-space:nowrap}
+.note{font-size:14px;color:var(--warn);margin:10px 0 0;line-height:1.4}
+.hint{font-size:13px;color:var(--acc);margin:8px 0 0}
+.set{padding:10px 0;border-top:1px solid var(--line)}
+.set.is-done{background:rgba(74,222,128,.06);border-radius:8px}
+.set-top{display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-bottom:8px}
+.set-top input{width:22px;height:22px;margin-top:2px;accent-color:var(--acc2);flex:none}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.stepper{display:flex;align-items:center;gap:4px}
+.stepper button{padding:6px 0;width:42px;font-size:18px;line-height:1;flex:none}
+.stepper input{width:100%;min-width:0;text-align:center;font:inherit;color:var(--text);background:var(--field);border:1px solid var(--line);border-radius:10px;padding:8px 4px}
+textarea{width:100%;min-height:52px;margin-top:8px;font:inherit;color:var(--text);background:var(--field);border:1px solid var(--line);border-radius:10px;padding:8px}
+.guide h3{margin:16px 0 6px;font-size:16px;color:var(--acc)}
+.guide p,.guide li{font-size:15px;line-height:1.5}
+.guide ul{padding-left:18px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Antrenamente</h1>
+  <span id="status"></span>
+</header>
+<main id="app"></main>
+
+<script>
+/* ============ DATE ANTRENAMENTE ============ */
+const S  = (label,target)=>({label,target});
+const wu = (t='15-20 reps, fără epuizare')=>S('Warm up',t);
+const fd = (t='10-12 reps, fără epuizare')=>S('Feeder',t);
+const wk = (n=1,t='6-10 reps, până la epuizare')=>S('Working '+n,t);
+const cl = ()=>S('Cluster 5×4','5 serii × 4 reps, 15 s pauză');
+const bo = (t='12-15 reps, până la epuizare')=>S('Back-off',t);
+const ser= (n,t)=>Array.from({length:n},(_,i)=>S('Serie '+(i+1),t));
+const warm   = {id:'warm',name:'Încălzire',sets:[S('Stairmaster / eliptică','5 min, apoi mobilitate articulară')]};
+const cardio = {id:'cardio',name:'Cardio final',sets:[S('Bandă, revenire','20 min · viteză 4,5 · înclinare 9,5')]};
+
+const DAYS = [
+ {id:'spate',name:'Spate & Biceps',exercises:[
+   {id:'warm2',name:'Încălzire',sets:[S('Eliptică','5 min')]},
+   {id:'pullover',name:'Pull-over la scripete',note:'Pentru conexiunea minte-mușchi, nu pentru masă. Simte-l în spatele superior, NU în triceps. Nu îndoi coatele. Greutate mică-medie.',sets:ser(3,'15-20 reps')},
+   {id:'helc_pron',name:'Tracțiuni la helcometru (priză pronație)',sets:[wu(),fd(),wk(1),wk(2)]},
+   {id:'rand_bara',name:'Rând cu bara din aplecat',note:'Pune centura, lombarul e solicitat. Priza apropiată, nu prea largă.',sets:[wu(),wk(1),wk(2),wk(3)]},
+   {id:'helc_v',name:'Tracțiuni cu priză V',sets:[wk(1),wk(2),wk(3)]},
+   {id:'rand_strans',name:'Rând cu priză strânsă',sets:[wk(1),wk(2)]},
+   {id:'rand_gant',name:'Rând cu o mână cu gantera',note:'Controlează greutatea, nu invers.',sets:[S('Stânga – Working 1','6-10 reps'),S('Stânga – Working 2','6-10 reps'),S('Dreapta – Working 1','6-10 reps'),S('Dreapta – Working 2','6-10 reps')]},
+   {id:'biceps_sezut',name:'Flexii biceps din șezut',note:'Strânge bicepsul la fiecare repetare în punctul maxim.',sets:[wu(),wk(1),wk(2)]},
+   {id:'biceps_z',name:'Flexii biceps din picioare cu bara Z',sets:[wk(1),wk(2)]},
+   cardio
+ ]},
+ {id:'piept',name:'Piept, Umeri & Triceps',exercises:[
+   {id:'warm2',name:'Încălzire',sets:[S('Eliptică','5 min')]},
+   {id:'plank',name:'Plank înainte de antrenament',sets:ser(3,'până la epuizare')},
+   {id:'flotari',name:'Flotări',sets:ser(4,'până la epuizare')},
+   {id:'impins_umeri',name:'Împins pentru umeri (aparat sau gantere)',sets:[wu(),fd(),wk(1),wk(2)]},
+   {id:'lat_picioare',name:'Ridicări laterale din picioare',note:'Scazi repetările, crești greutatea.',sets:[20,18,16,14,12,10].map((r,i)=>S('Serie '+(i+1),r+' reps'))},
+   {id:'ramat_vert',name:'Râmat vertical',sets:[wk(1),cl()]},
+   {id:'lat_aparat',name:'Ridicări laterale la aparat',note:'Pauză 15 s între serii.',sets:ser(10,'4 reps')},
+   {id:'facepull',name:'Facepulls',sets:[wu(),fd(),wk(1),wk(2)]},
+   {id:'finisher_umeri',name:'Finisher umeri – set gigant',note:'3 exerciții fără pauză, 20 reps fix fiecare: ridicări laterale, ridicări frontale cu discul, împins gantere deasupra capului. Dacă nu arde după prima serie, ia greutate mai mare.',sets:[S('Set gigant','1 serie · 3 exerciții × 20 reps')]},
+   {id:'tri_cablu',name:'Extensii triceps cu sfoară la scripete',note:'Ține 1 s contracția când brațele sunt întinse complet.',sets:[wu(),wk(1),cl()]},
+   {id:'tri_gant',name:'Extensii triceps cu gantera deasupra capului',sets:[wk(1),wk(2)]},
+   {id:'dips',name:'Dips (paralele sau aparat)',note:'6-10 reps, 15 s pauză, din nou 6-10 și tot așa, până faci maxim 1 repetare corectă.',sets:[S('Serie 1','6-10 reps'),S('Serie 2','6-10 reps'),S('Serie 3','până la max 1 rep')]},
+   cardio
+ ]},
+ {id:'fesier',name:'Fesier',exercises:[
+   {id:'warm2',name:'Încălzire',sets:[S('Stairmaster','5 min')]},
+   {id:'fandari50',name:'Fandări la liber',note:'Pas mare și ușor în diagonală, din mers. Pasul mic pune accent pe cvadriceps.',sets:[S('Fandări','50 la liber')]},
+   {id:'abductor',name:'Abductor',note:'După fiecare serie: superset cu hiperextensii pentru fesier.',sets:[S('Serie 1','25 reps'),S('Serie 2','25 reps'),S('Serie 3','6-10 reps până la epuizare, apoi dropset -30%')]},
+   {id:'hip_thrust',name:'Hip thrust',note:'Contractă fesierii 1 s sus. Greutatea să permită între 4 și 8 reps.',sets:[S('Warm up','15-20 reps, fără epuizare'),S('Feeder','10-12 reps, fără epuizare'),S('Working 1','4-8 reps, până la epuizare'),S('Working 2','4-8 reps, până la epuizare'),cl()]},
+   {id:'indreptari',name:'Îndreptări cu bara sau gantere',note:'Coboară spre vârful picioarelor.',sets:[wk(1),wk(2),S('Back-off','6-10 reps, apoi -30%: 3 s pozitiv / 5 s negativ, până la epuizare')]},
+   {id:'sumo',name:'Sumo squat',note:'Picioarele mai depărtate decât umerii. Mișcarea din flexia șoldului. Strânge abdomenul și lombarul.',sets:[wk(1,'6-10 reps, greutate mare'),...[1,2,3,4].map(i=>S('Working 2 – serie '+i,'8-12 reps, 30 s pauză'))]},
+   {id:'kickbacks',name:'Kickbacks la scripete sau aparat',note:'Ține 1 s contracția maximă la fiecare repetare.',sets:[S('Serie 1','12-15 reps până la epuizare'),S('Serie 2','12-15 reps până la epuizare'),S('Rest-pause (pe un picior)','6-10 reps, 20 s pauză, repetă până la max 1 rep, apoi schimbi piciorul')]},
+   {id:'stepups',name:'Step-ups',sets:[S('Final','50 pe fiecare picior, fără greutate')]},
+   cardio
+ ]},
+ {id:'biceps_femural',name:'Biceps femural',exercises:[
+   {id:'warm2',name:'Încălzire',sets:[S('Stairmaster','5 min + 50 fandări la liber')]},
+   {id:'flexii_burta',name:'Flexii biceps femural de pe burtă',note:'Împinge pelvisul în bancă, fesierul să nu se ridice. Working set: maxim 10 reps.',sets:[wu(),fd(),wk(1,'6-10 reps, max 10'),cl()]},
+   {id:'indreptari_bf',name:'Îndreptări cu bara sau gantere',note:'Genunchi cât mai drepți. Dacă simți lombarul mai mult decât femuralul, greutatea e prea mare.',sets:[wk(1),wk(2),bo('12-15 reps')]},
+   {id:'flexii_sezut',name:'Flexii biceps femural din șezut',note:'Dacă nu ai ambele aparate, îl faci pe cel pe care îl ai.',sets:[wk(1),wk(2)]},
+   {id:'bulgara',name:'Bulgarian split squats',note:'Aplecat din trunchi, pentru fesier și femural.',sets:[S('Feeder','12-20 reps, gantere ușoare'),S('Working 1','max 10 reps pe picior, gantere grele'),S('Working 2','max 10 reps pe picior, gantere grele'),S('Serie 3 (izometrie)','12-15 reps, 3 s izometrie jos')]},
+   {id:'sumo_bf',name:'Sumo squat cu gantera sau aparat',note:'Greutatea de working set.',sets:ser(10,'4 reps, 15 s pauză')},
+   {id:'abductor_bf',name:'Abductor + superset fandări',note:'Gantere la jumătate din greutatea abductorului (ex. 50 kg la aparat → 12,5 kg în fiecare mână).',sets:[S('Working 1 abductor','6-10 reps'),S('Superset fandări','25 pe picior'),S('Working 2 abductor','6-10 reps'),S('Superset fandări','25 pe picior')]},
+   cardio
+ ]},
+ {id:'cvadriceps',name:'Cvadriceps',exercises:[
+   {id:'warm2',name:'Încălzire',sets:[S('Stairmaster','5 min')]},
+   {id:'ext_cvad',name:'Extensii cvadriceps',note:'Rest-pause: 10 reps max, 20 s pauză, cu aceeași greutate, până nu mai poți.',sets:[S('Serie 1 – încălzire','25 reps'),S('Serie 2 – premergătoare','15 reps'),S('Serie 3 – working','6-10 reps'),S('Serie 4 – rest-pause','10 reps max, 20 s pauză, repetă')]},
+   {id:'genuflexiuni',name:'Genuflexiuni cu bara spate sau hack squat',note:'Picioarele la nivelul umerilor, vârfurile în față. Coboară până la minim 90°. Sub călcâi poți pune discuri de 2,5-5 kg.',sets:[wu(),fd(),wk(1),wk(2)]},
+   {id:'presa',name:'Presa',sets:[wu(),wk(1),wk(2),wk(3)]},
+   {id:'pendulum',name:'Pendulum squat',sets:[S('Feeder','10-12 reps'),S('Seria 1 – working','6-10 reps'),S('Seria 2 – triplu dropset invers','8 reps, 20 s, 10 reps, 20 s, 12 reps; aceeași greutate'),S('Seria 3 – back-off','12-15 reps până la epuizare')]},
+   {id:'adductor_cvad',name:'Adductor',note:'După fiecare working set: dropset -25% până la epuizare.',sets:[S('Working 1','6-10 reps'),S('Dropset 1','-25%, până la epuizare'),S('Working 2','6-10 reps'),S('Dropset 2','-25%, până la epuizare'),S('Working 3','6-10 reps'),S('Dropset 3','-25%, până la epuizare')]},
+   {id:'finisher_fandari',name:'Finisher: fandări în mers',note:'Pas mic și îngust, ca să pui tensiune pe cvadriceps.',sets:[S('Fandări','50 în mers')]},
+   cardio
+ ]}
+];
+
+/* ============ STARE & STOCARE ============ */
+const KEY = 'antrenamente-v1';
+const app = document.getElementById('app');
+const statusEl = document.getElementById('status');
+const pad = n=>String(n).padStart(2,'0');
+const todayISO = ()=>{const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());};
+const esc = s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+let store;
+try { store = JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ store = {}; }
+if(!store.sessions) store.sessions = {};
+const ui = {view:'home', day:null, date:todayISO()};
+
+function persist(){
+  try { localStorage.setItem(KEY, JSON.stringify(store)); statusEl.textContent='✓ salvat'; }
+  catch(e){ statusEl.textContent='nu s-a putut salva'; }
+}
+function curDay(){ return DAYS.find(d=>d.id===ui.day); }
+function exById(id){ return curDay().exercises.find(x=>x.id===id); }
+function getEx(dayId, ex){
+  const k = ui.date+'|'+dayId;
+  const sess = store.sessions[k] || (store.sessions[k] = {});
+  const e = sess[ex.id] || (sess[ex.id] = {sets:[], note:''});
+  while(e.sets.length < ex.sets.length) e.sets.push({reps:'',kg:'',done:false});
+  return e;
+}
+function getSet(row){
+  const ex = exById(row.dataset.ex);
+  return getEx(ui.day, ex).sets[+row.dataset.i];
+}
+function prevHint(dayId, ex){
+  const keys = Object.keys(store.sessions)
+    .filter(k=>k.endsWith('|'+dayId) && k.split('|')[0] < ui.date)
+    .sort().reverse();
+  for(const k of keys){
+    const e = store.sessions[k][ex.id];
+    if(!e) continue;
+    const ok = e.sets.filter(s=>s.kg!=='' && s.reps!=='');
+    if(!ok.length) continue;
+    const best = ok.reduce((a,b)=> (+b.kg > +a.kg ? b : a));
+    return `Data trecută (${k.split('|')[0]}): ${best.kg} kg × ${best.reps} reps`;
+  }
+  return '';
+}
+function refreshCount(exId){
+  const ex = exById(exId);
+  const e = getEx(ui.day, ex);
+  const el = document.querySelector(`[data-count="${exId}"]`);
+  if(el) el.textContent = `${e.sets.filter(s=>s.done).length}/${ex.sets.length}`;
+}
+
+/* ============ RANDARE ============ */
+function field(f,label,val,step){
+  return `<div class="field"><span class="muted">${label}</span>
+    <div class="stepper">
+      <button data-act="dec" data-f="${f}" data-step="${step}">−</button>
+      <input type="number" inputmode="decimal" min="0" step="${step}" data-f="${f}" value="${esc(val)}">
+      <button data-act="inc" data-f="${f}" data-step="${step}">+</button>
+    </div></div>`;
+}
+function setHTML(ex, s, i, d){
+  return `<div class="set${s.done?' is-done':''}" data-ex="${ex.id}" data-i="${i}">
+    <label class="set-top"><input type="checkbox" ${s.done?'checked':''}>
+      <span><b>${esc(d.label)}</b> <span class="muted">${esc(d.target)}</span></span></label>
+    <div class="pair">${field('reps','Repetări',s.reps,1)}${field('kg','Kg',s.kg,2.5)}</div>
+  </div>`;
+}
+function exHTML(day, ex){
+  const e = getEx(day.id, ex);
+  const hint = prevHint(day.id, ex);
+  return `<details class="card" open>
+    <summary><b>${esc(ex.name)}</b>
+      <span class="count muted" data-count="${ex.id}">${e.sets.filter(s=>s.done).length}/${ex.sets.length}</span></summary>
+    ${ex.note?`<p class="note">${esc(ex.note)}</p>`:''}
+    ${hint?`<p class="hint">${esc(hint)}</p>`:''}
+    ${ex.sets.map((d,i)=>setHTML(ex, e.sets[i], i, d)).join('')}
+    <textarea data-note="${ex.id}" placeholder="Notițe (senzații, tehnică, greutate)…">${esc(e.note)}</textarea>
+  </details>`;
+}
+function renderHome(){
+  const pick = d => d.exercises.filter(x=>x.id!=='warm2' && x.id!=='warm' && x.id!=='cardio').length;
+  app.innerHTML = `
+    <h2 class="sec">Data antrenamentului</h2>
+    <div class="card"><input type="date" id="dateIn" value="${ui.date}" style="width:100%"></div>
+    <h2 class="sec">Zilele tale</h2>
+    ${DAYS.map(d=>`<div class="card day-card" data-day="${d.id}">
+      <div><b>${esc(d.name)}</b><div class="muted">${pick(d)} exerciții</div></div><span class="arrow">›</span></div>`).join('')}
+    <h2 class="sec">Altele</h2>
+    <div class="card"><button data-nav="guide" style="width:100%">Ghid & termeni</button></div>
+    <div class="card">
+      <p class="muted" style="margin:0 0 10px">Progresul e salvat doar pe acest dispozitiv. Fă un backup din când în când.</p>
+      <div class="toolbar" style="justify-content:flex-start;gap:8px">
+        <button data-act="export">Exportă backup</button>
+        <label class="btn">Importă<input type="file" accept="application/json" id="importIn" hidden></label>
+      </div>
+    </div>`;
+}
+function renderDay(){
+  const day = curDay();
+  app.innerHTML = `
+    <div class="toolbar">
+      <button data-nav="home">← Zile</button>
+      <input type="date" id="dateIn" value="${ui.date}">
+    </div>
+    <h2 class="sec" style="margin-top:12px">${esc(day.name)}</h2>
+    ${day.exercises.map(ex=>exHTML(day, ex)).join('')}`;
+}
+function renderGuide(){
+  app.innerHTML = `
+  <div class="guide">
+    <div class="toolbar"><button data-nav="home">← Zile</button></div>
+    <h2 class="sec">Termeni</h2>
+    <div class="card">
+      <h3>Warm up</h3><p>15-20 reps, fără să atingi epuizarea. Greutate aprox. 30% din maxim.</p>
+      <h3>Feeder</h3><p>10-12 reps, fără epuizare. Greutate aprox. 60% din maxim.</p>
+      <h3>Working set</h3><p>Greutatea maximă cu care faci 6-10 reps, până la epuizare. Sub 6 = prea grea. Peste 10 = prea ușoară.</p>
+      <h3>Cluster 5×4</h3><p>5 mini-serii de 4 reps, cu 15 s pauză. Greutatea ca pentru 10 reps. Ideal: nu termini a 5-a serie.</p>
+      <h3>Back-off</h3><p>Serie de final cu greutate mai mică, 12-15 reps până la epuizare.</p>
+      <h3>Dropset / rest-pause</h3><p>Dropset: scazi greutatea și continui. Rest-pause: pauze scurte de 15-20 s cu aceeași greutate.</p>
+      <h3>Pauza</h3><p>Până îți revii, fără să pierzi conexiunea cu mușchiul.</p>
+    </div>
+    <h2 class="sec">Feedback săptămânal</h2>
+    <div class="card"><ul>
+      <li>Trimis până la 12:00 în ziua stabilită.</li>
+      <li>Poze (la lumină, telefonul la nivelul buricului, pe timer, nu selfie) și kilograme / măsurători.</li>
+      <li>Stare de energie, abateri, progressive overload, digestie, apă suficientă (da/nu).</li>
+    </ul></div>
+  </div>`;
+}
+function render(){
+  if(ui.view==='home') renderHome();
+  else if(ui.view==='day') renderDay();
+  else renderGuide();
+  window.scrollTo(0,0);
+}
+
+/* ============ EVENTE ============ */
+app.addEventListener('click', e=>{
+  const dayCard = e.target.closest('[data-day]');
+  if(dayCard){ ui.day = dayCard.dataset.day; ui.view='day'; render(); return; }
+  const nav = e.target.closest('[data-nav]');
+  if(nav){ ui.view = nav.dataset.nav; render(); return; }
+  const b = e.target.closest('button[data-act]');
+  if(!b) return;
+  if(b.dataset.act==='export'){ exportData(); return; }
+  const row = b.closest('.set');
+  if(!row) return;
+  const s = getSet(row);
+  const f = b.dataset.f, step = +b.dataset.step;
+  let v = parseFloat(s[f]) || 0;
+  v = b.dataset.act==='inc' ? v+step : Math.max(0, v-step);
+  s[f] = v ? String(Math.round(v*100)/100) : '';
+  row.querySelector(`input[data-f="${f}"]`).value = s[f];
+  persist();
+});
+
+app.addEventListener('input', e=>{
+  const el = e.target;
+  if(el.matches('textarea[data-note]')){
+    getEx(ui.day, exById(el.dataset.note)).note = el.value;
+    persist(); return;
+  }
+  const row = el.closest('.set');
+  if(!row) return;
+  const s = getSet(row);
+  if(el.type==='checkbox'){
+    s.done = el.checked;
+    row.classList.toggle('is-done', s.done);
+    refreshCount(row.dataset.ex);
+  } else if(el.dataset.f){
+    s[el.dataset.f] = el.value;
+  }
+  persist();
+});
+
+app.addEventListener('change', e=>{
+  const el = e.target;
+  if(el.id==='dateIn'){ ui.date = el.value || todayISO(); render(); }
+  if(el.id==='importIn'){ importFile(el.files[0]); }
+});
+
+function exportData(){
+  const blob = new Blob([JSON.stringify(store,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'antrenamente-backup.json';
+  a.click();
+}
+function importFile(file){
+  if(!file) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    try{
+      const d = JSON.parse(r.result);
+      if(!d || typeof d.sessions!=='object') throw new Error();
+      store = d; persist(); render(); alert('Import reușit.');
+    }catch(err){ alert('Fișierul nu este un backup valid.'); }
+  };
+  r.readAsText(file);
+}
+
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+if (navigator.storage && navigator.storage.persist) {
+  navigator.storage.persist().catch(()=>{});
+}
+render();
+</script>
+</body>
+</html>
